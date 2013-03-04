@@ -41,4 +41,6 @@ extern int lxc_attach_drop_privs(struct lxc_proc_context_info *ctx);
 struct passwd;
 extern struct passwd *lxc_attach_getpwuid(uid_t uid);
 
+extern int lxc_attach_get_init_uidgid(uid_t* init_uid, gid_t* init_gid);
+
 #endif
