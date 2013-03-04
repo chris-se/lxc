@@ -449,15 +449,21 @@ int main(int argc, char *argv[])
 		if (!passwd)
 		        passwd = lxc_attach_getpwuid(uid);
 
-		if (!passwd) {
-			SYSERROR("failed to get passwd "		\
-				 "entry for uid '%d'", uid);
-			return -1;
-		}
-
-		{
+		if (passwd) {
 			char *const args[] = {
 				passwd->pw_shell,
+				NULL,
+			};
+
+			(void) execvp(args[0], args);
+		}
+
+		/* executed if either no passwd entry or execvp fails,
+		 * we will fall back on /bin/sh as a default shell
+		 */
+		{
+			char *const args[] = {
+				"/bin/sh",
 				NULL,
 			};
 
