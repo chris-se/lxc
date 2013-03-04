@@ -438,6 +438,17 @@ int main(int argc, char *argv[])
 		uid = getuid();
 
 		passwd = getpwuid(uid);
+
+		/* this probably happens because of incompatible nss
+		 * implementations in host and container (remember, this
+		 * code is still using the host's glibc but our mount
+		 * namespace is in the container)
+		 * we may try to get the information by spawning a
+		 * [getent passwd uid] process and parsing the result
+		 */
+		if (!passwd)
+		        passwd = lxc_attach_getpwuid(uid);
+
 		if (!passwd) {
 			SYSERROR("failed to get passwd "		\
 				 "entry for uid '%d'", uid);

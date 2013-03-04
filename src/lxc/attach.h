@@ -38,4 +38,7 @@ extern int lxc_attach_to_ns(pid_t other_pid, int which);
 extern int lxc_attach_remount_sys_proc();
 extern int lxc_attach_drop_privs(struct lxc_proc_context_info *ctx);
 
+struct passwd;
+extern struct passwd *lxc_attach_getpwuid(uid_t uid);
+
 #endif
