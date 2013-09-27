@@ -386,6 +386,14 @@ static void lxc_fini(const char *name, struct lxc_handler *handler)
 	if (run_lxc_hooks(name, "post-stop", handler->conf, handler->lxcpath, NULL))
 		ERROR("failed to run post-stop hooks for container '%s'.", name);
 
+	/* remove rootfs pin file after we shutdown this
+	 * container
+	 */
+	if (handler->pin_filename) {
+		unlink(handler->pin_filename);
+		free(handler->pin_filename);
+	}
+
 	/* reset mask set by setup_signal_fd */
 	if (sigprocmask(SIG_SETMASK, &handler->oldmask, NULL))
 		WARN("failed to restore sigprocmask");
@@ -708,7 +716,7 @@ int lxc_spawn(struct lxc_handler *handler)
 	 * marking it readonly.
 	 */
 
-	handler->pinfd = pin_rootfs(handler->conf->rootfs.path);
+	handler->pinfd = pin_rootfs(handler->conf->rootfs.path, &handler->pin_filename);
 	if (handler->pinfd == -1)
 		INFO("failed to pin the container's rootfs");
 

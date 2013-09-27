@@ -331,7 +331,7 @@ extern int detect_shared_rootfs(void);
 extern struct lxc_conf *lxc_conf_init(void);
 extern void lxc_conf_free(struct lxc_conf *conf);
 
-extern int pin_rootfs(const char *rootfs);
+extern int pin_rootfs(const char *rootfs, char **filename_ptr);
 
 extern int lxc_create_network(struct lxc_handler *handler);
 extern void lxc_delete_network(struct lxc_handler *handler);

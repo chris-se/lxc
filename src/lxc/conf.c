@@ -695,15 +695,18 @@ static int mount_rootfs_block(const char *rootfs, const char *target)
 
 /*
  * pin_rootfs
- * if rootfs is a directory, then open ${rootfs}/lxc.hold for writing for
- * the duration of the container run, to prevent the container from marking
- * the underlying fs readonly on shutdown. unlink the file immediately so
- * no name pollution is happens
+ * if rootfs is a directory, then open ${rootfs}/.lxc-hold-$pid for writing
+ * for the duration of the container run, to prevent the container from
+ * marking the underlying fs readonly on shutdown. $pid is the pid of
+ * lxc-start. At shutdown the hold file will be removed again. The pid is
+ * encoded in the filename, so that if multiple containers use the same
+ * root filesystem, a hold will be kept open until the last container is
+ * stopped.
  * return -1 on error.
  * return -2 if nothing needed to be pinned.
  * return an open fd (>=0) if we pinned it.
  */
-int pin_rootfs(const char *rootfs)
+int pin_rootfs(const char *rootfs, char **filename_ptr)
 {
 	char absrootfs[MAXPATHLEN];
 	char absrootfspin[MAXPATHLEN];
@@ -725,16 +728,19 @@ int pin_rootfs(const char *rootfs)
 	if (!S_ISDIR(s.st_mode))
 		return -2;
 
-	ret = snprintf(absrootfspin, MAXPATHLEN, "%s/lxc.hold", absrootfs);
+	ret = snprintf(absrootfspin, MAXPATHLEN, "%s/.lxc-hold-%lu", absrootfs, (unsigned long)getpid());
 	if (ret >= MAXPATHLEN)
 		return -1;
+
+	if (filename_ptr) {
+		*filename_ptr = strdup(absrootfspin);
+		if (!*filename_ptr)
+			return -1;
+	}
 
 	process_lock();
 	fd = open(absrootfspin, O_CREAT | O_RDWR, S_IWUSR|S_IRUSR);
 	process_unlock();
-	if (fd < 0)
-		return fd;
-	(void)unlink(absrootfspin);
 	return fd;
 }
 

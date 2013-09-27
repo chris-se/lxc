@@ -50,6 +50,7 @@ struct lxc_handler {
 	struct lxc_operations *ops;
 	void *data;
 	int sv[2];
+	char *pin_filename;
 	int pinfd;
 	const char *lxcpath;
 	struct cgroup_process_info *cgroup;
